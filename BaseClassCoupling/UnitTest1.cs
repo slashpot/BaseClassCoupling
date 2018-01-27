@@ -10,14 +10,14 @@ namespace BaseClassCoupling
         public void calculate_LessThanOneYearEmployee_Bonus()
         {
             //if my monthly salary is 1200, working year is 0.5, my bonus should be 600
-            var lessThanOneYearEmployee = new LessThanOneYearEmployee()
+            var lessThanOneYearEmployee = new FakeEmployee()
             {
                 Id = 91,
-                //Console.WriteLine("your StartDate should be :{0}", DateTime.Today.AddDays(365/2*-1));
                 StartWorkingDate = new DateTime(2017, 7, 29)
             };
+            Console.WriteLine("your StartDate should be :{0}", DateTime.Today.AddDays(365 / 2 * -1));
 
-            var actual = lessThanOneYearEmployee.GetYearlyBonus();
+            var actual = (int)lessThanOneYearEmployee.GetYearlyBonus();
             Assert.AreEqual(600, actual);
         }
     }
@@ -26,7 +26,7 @@ namespace BaseClassCoupling
     {
         public DateTime StartWorkingDate { get; set; }
 
-        protected decimal GetMonthlySalary()
+        protected virtual decimal GetMonthlySalary()
         {
             DebugHelper.Info($"query monthly salary id:{Id}");
             return SalaryRepo.Get(this.Id);
@@ -42,14 +42,37 @@ namespace BaseClassCoupling
         public override decimal GetYearlyBonus()
         {
             var salary = this.GetMonthlySalary();
-            DebugHelper.Info($"id:{Id}, his monthly salary is:{salary}");
+            WriteInfo(salary);
             return Convert.ToDecimal(this.WorkingYear()) * salary;
         }
 
-        private double WorkingYear()
+        protected virtual void WriteInfo(decimal salary)
+        {
+            DebugHelper.Info($"id:{Id}, his monthly salary is:{salary}");
+        }
+
+        protected double WorkingYear()
         {
             var year = (DateTime.Now - StartWorkingDate).TotalDays / 365;
             return year > 1 ? 1 : year;
+        }
+    }
+
+    public class FakeEmployee : LessThanOneYearEmployee
+    {
+        protected override decimal GetMonthlySalary()
+        {
+            return 1200;
+        }
+
+        protected override void WriteInfo(decimal salary)
+        {
+        }
+
+        public override decimal GetYearlyBonus()
+        {
+            var salary = this.GetMonthlySalary();
+            return Convert.ToDecimal(this.WorkingYear()) * salary;
         }
     }
 
